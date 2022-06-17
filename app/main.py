@@ -1,8 +1,10 @@
 from fastapi import FastAPI, Request, Response
 
 from migrate import automigrate
+from sqlalchemy.orm import Session
 
-from app.database.database import SessionLocal
+from app.database import crud
+from app.database.database import SessionLocal, engine
 from app.dependencies import get_settings
 from app.routers import equation, color
 
@@ -27,4 +29,12 @@ async def db_session_middleware(request: Request, call_next):
 
 @app.on_event("startup")
 async def startup_event():
-    automigrate()
+    # automigrate()
+    with Session(engine) as db:
+        crud.set_colors(db)
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    with Session(engine) as db:
+        crud.delete_colors(db)

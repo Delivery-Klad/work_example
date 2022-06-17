@@ -1,6 +1,3 @@
-from app.database import schemas
-
-
 def counter(data):
     temp = data.b * data.b - 4 * data.a * data.c
     print(temp)
