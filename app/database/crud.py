@@ -14,7 +14,6 @@ def delete_colors(db):
 def fill_colors_table(db):
     db_data = db.query(models.Colors).all()
     if not db_data:
-        print(db_data)
         color = models.Colors(id=1, name="Синий")
         db.add(color)
         color = models.Colors(id=2, name="Зеленый")
@@ -26,6 +25,8 @@ def fill_colors_table(db):
 
 def set_colors(db):
     fill_colors_table(db)
+    if db.query(models.ColorsList).all():
+        return
     temp = []
     for i in range(60):
         temp.append(1)
@@ -42,4 +43,7 @@ def set_colors(db):
 
 def get_color_by_id(db, index):
     db_data = db.query(models.ColorsList, models.Colors.name).join(models.Colors).filter(models.ColorsList.id == index).first()
-    return db_data.name
+    try:
+        return db_data.name
+    except AttributeError:
+        return None

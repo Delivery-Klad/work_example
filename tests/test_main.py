@@ -1,22 +1,42 @@
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 
-from app.database.database import DataBase
-from app.dependencies import get_db
-from app.main import app
+from app.main import app, startup_event
 
 
-SQLALCHEMY_DATABASE_URL = "sqlite:///./sql_app.db"
-
-engine = create_engine(SQLALCHEMY_DATABASE_URL,
-                       connect_args={"check_same_thread": False})
-TestingSessionLocal = sessionmaker(autocommit=False,
-                                   autoflush=False, bind=engine)
-
-DataBase.metadata.create_all(bind=engine)
+startup_event()
+client = TestClient(app)
 
 
-def test_create_message():
-    response = app.post("/messages/", json={"test": "1"})
-    assert response.status_code == 201
+def test_zero_equation():
+    response = client.post("/equation/", json={"a": 0, "b": 0, "c": 0})
+    assert response.status_code == 422
+    assert response.json() == {"result": "division by zero"}
+
+
+def test_no_answers():
+    response = client.post("/equation/", json={"a": 1, "b": 1, "c": 1})
+    assert response.status_code == 200
+    assert response.json() == {"result": "Уравнение не имеет корней"}
+
+
+def test_one_answer():
+    response = client.post("/equation/", json={"a": -4, "b": 28, "c": -49})
+    assert response.status_code == 200
+    assert response.json() == {"result": "Корень уравнения x = 3.5"}
+
+
+def test_two_answers():
+    response = client.post("/equation/", json={"a": 4, "b": 5, "c": 1})
+    assert response.status_code == 200
+    assert response.json() == {"result": "Корни уравления x = -0.25, -1.0"}
+
+
+def test_get_color():
+    response = client.get("/color/12")
+    assert response.status_code == 200
+    assert response.json() == {"result": response.json()["result"]}
+
+
+def test_get_color_not_found():
+    response = client.get("/color/200")
+    assert response.status_code == 404

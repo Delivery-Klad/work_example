@@ -28,13 +28,7 @@ async def db_session_middleware(request: Request, call_next):
 
 
 @app.on_event("startup")
-async def startup_event():
-    # automigrate()
+def startup_event():
+    automigrate()
     with Session(engine) as db:
         crud.set_colors(db)
-
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    with Session(engine) as db:
-        crud.delete_colors(db)
